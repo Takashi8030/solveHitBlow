@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Solve Hit & Blow</title>
+</head>
+<body>
+  <h1>Solve Hit & Blow</h1>
+
+  <div id="input1">
+    <div>
+      <label>色：</label>
+      <select id="color1">
+        <option value="1">青</option>
+        <option value="2">赤</option>
+        <option value="3">緑</option>
+        <option value="4">黄</option>
+        <option value="5">桃</option>
+        <option value="6">白</option>
+      </select>
+
+      <select id="color2">
+        <option value="1">青</option>
+        <option value="2">赤</option>
+        <option value="3">緑</option>
+        <option value="4">黄</option>
+        <option value="5">桃</option>
+        <option value="6">白</option>
+      </select>
+
+      <select id="color3">
+        <option value="1">青</option>
+        <option value="2">赤</option>
+        <option value="3">緑</option>
+        <option value="4">黄</option>
+        <option value="5">桃</option>
+        <option value="6">白</option>
+      </select>
+
+      <select id="color4">
+        <option value="1">青</option>
+        <option value="2">赤</option>
+        <option value="3">緑</option>
+        <option value="4">黄</option>
+        <option value="5">桃</option>
+        <option value="6">白</option>
+      </select>
+    </div>
+
+    <div style="margin-right: 5px;">
+      <label>ヒット数：</label>
+      <select id="hit">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+
+    <div>
+      <label>ブロー数：</label>
+      <select id="blow">
+        <option value="0">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+      </select>
+    </div>
+    <br>
+  </div>
+
+  <button onclick="addInput()">入力追加</button>
+  <button onclick="getSelectedValues()">値を取得</button>
+
+  <p id="result"></p>
+
+  <script src="candidates.js"></script>
+  <script src="isCandidates.js"></script>
+  <script src="candColorFreq.js"></script>
+  <script>
+    let elmNum = 1;
+    function getSelectedValues() {
+      let resultText = "";
+      clearVals();
+      for (let i = 1; i <= elmNum; i++) {
+        var target = document.getElementById("input"+i);
+ 
+        var color1Value = parseInt(target.querySelector("#color1").value);
+        var color2Value = parseInt(target.querySelector("#color2").value);
+        var color3Value = parseInt(target.querySelector("#color3").value);
+        var color4Value = parseInt(target.querySelector("#color4").value);
+        var hitValue = parseInt(target.querySelector("#hit").value);
+        var blowValue = parseInt(target.querySelector("#blow").value);
+
+        dispCand([color1Value, color2Value, color3Value, color4Value], hitValue, blowValue);
+        // dispMode();
+      }
+    }
+
+    function addInput() {
+      let content_area = document.getElementById("input"+elmNum);
+      let clone_element = content_area.cloneNode(true);
+      elmNum++;
+      clone_element.id = "input"+elmNum;
+      content_area.after(clone_element);
+    }
+
+    function dispCand(inputArr, hit, blow){
+      document.getElementById("result").innerHTML = "候補:<br>"
+      for(let i = 0; i < candidates.length; i++){
+        if(!isCandidates[i]){
+          continue;
+        }
+        if(getHit(inputArr, i) !== hit){
+          isCandidates[i] = false;
+          continue;
+        }
+        if(getBlow(inputArr, i) !== blow){
+          isCandidates[i] = false;
+          continue;
+        }
+        document.getElementById("result").innerHTML += getCandStr(i) + "<br>";
+      }
+    }
+
+    function getHit(inputArr, i){
+      let hits = 0;
+      for(let j = 0; j < 4; j++){
+        if(candidates[i][j] == inputArr[j]){
+          hits++;
+        }
+      }
+      return hits;
+    }
+    
+    function getBlow(inputArr, i){
+      let blows = 0;
+      for(let j = 0; j < 4; j++){
+        for(let k = 0; k < 4; k++){
+          if(j == k) continue;
+          if( k > 0 && inputArr[k] == inputArr[k-1]) continue;
+          if(candidates[i][j] == inputArr[k] && candidates[i][j] != inputArr[j]){
+            blows++;
+            continue;
+          }
+        }
+      }
+      return blows;
+    }
+
+    function getCandStr(i){
+      let candStr = '';
+      for(let j = 0; j < 4; j++){
+        candStr += numToColor(candidates[i][j]);
+      }
+      return candStr;
+    }
+
+    function numToColor(num){
+      switch(num){
+          case 1:
+            return '青';
+          case 2:
+            return '赤';
+          case 3:
+            return '緑';
+          case 4:
+            return '黄';
+          case 5:
+            return '桃';
+          case 6:
+            return '白';
+        }
+    }
+
+    function dispMode(){
+      clearCandColorFreq();
+      let existStr = document.getElementById("result").innerHTML;
+      let recomStr = '最頻色:<br>';
+      for(let i = 0; i < candidates.length; i++){
+        if(!isCandidates[i]){
+          continue;
+        }
+        for(let j = 0; j < 4; j++){
+          candColorFreq[j][candidates[i][j]]++;
+        }
+      }
+      for(let i = 0; i < 4; i++){
+        let max = 0;
+        let maxColor = 0;
+        for(let j = 0; j < 6; j++){
+          let target = candColorFreq[i][j];
+          if(target > max){
+            max = target;
+            maxColor = j
+          }
+        }
+        recomStr += numToColor(maxColor);
+      }
+      document.getElementById("result").innerHTML =  recomStr + '<br><br>' + existStr;
+    }
+
+    function clearCandColorFreq(){
+      for(let i = 0; i < 4; i++){
+        for(let j = 0; j < 6; j++){
+          candColorFreq[i][j] = 0;
+        }
+      }
+    }
+
+    function clearVals(){
+      for(let i = 0; i < isCandidates.length; i++){
+        isCandidates[i] = true;
+      }
+      clearCandColorFreq();
+    }
+  
+  </script>
+</body>
+</html>
